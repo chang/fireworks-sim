@@ -16,8 +16,7 @@ clock = pygame.time.Clock()
 # create fireworks
 fireworks = []
 for _ in range(10):
-	fw = Firework()
-	fw.random_firework_type(WIN_WIDTH, WIN_HEIGHT)
+	fw = Firework(WIN_WIDTH, WIN_HEIGHT)
 	fireworks.append(fw)
 
 
@@ -35,18 +34,18 @@ while running:
 	display.fill((0, 0, 0))  # reset screen to black before it's drawn
 	
 	
-
 	# render all fireworks
-	for i,fw in enumerate(fireworks):
-		fw.update()
-		(fw_rendered, fw_pos) = fw.draw()
-		# pygame.draw.rect(display, rendered_fw['color'], rendered_fw['rect'])
-		display.blit(fw_rendered, fw_pos)  # (0,0) are the top-left coordinates
-
+	for i,firework in enumerate(fireworks):
+		firework.update()
+		(firework_rendered, firework_pos) = firework.draw()
+		display.blit(firework_rendered, firework_pos)  # (0,0) are the top-left coordinates
 
 		# remove from array if off screen
-		if fw.vel_y < 0 and fw.pos_y > WIN_HEIGHT:
+		if firework.vel_y < 0 and firework.pos_y > WIN_HEIGHT:
 			fireworks.pop(i)
+			fireworks.append(Firework(WIN_WIDTH, WIN_HEIGHT))
+
+			
 
 
 	# reset screen and set frame rate
