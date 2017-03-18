@@ -1,6 +1,8 @@
 import pygame
 import random
 
+GRAVITY = -0.3
+
 
 def get_random_color():
      """
@@ -60,7 +62,7 @@ class Particle:
 		surf.fill(self.color)
 
 		pos = (self.pos_x, self.pos_y)
-		
+
 		return (surf, pos)
 
 
@@ -74,8 +76,8 @@ class Firework(Particle):
 
 	def random_firework(self, win_width, win_height):
 		# position
-		self.pos_x = win_width * random.random()
-		self.pos_y = win_height - self.len_y  # no actual need to adjust
+		self.pos_x = random.uniform(0, win_width)
+		self.pos_y = random.uniform(win_height, win_height + 20)  # no actual need to adjust
 		
 		# size
 		self.len_x = random.randrange(5, 10)
@@ -86,7 +88,7 @@ class Firework(Particle):
 		self.vel_y = random.uniform(10, 20)
 
 		# acceleration
-		self.acc_y = -0.3
+		self.acc_y = GRAVITY
 
 		# color
 		self.color = get_random_color()
@@ -101,36 +103,39 @@ class Firework(Particle):
 
 
 	def explode(self):
-		self.alpha_decay = -10
-		streamers = [Streamer(self.pos_x, self.pos_y) for _ in range(15)]
+		self.alpha = 0
 
+
+	def make_streamers(self, n):
+		streamers = [Streamer(self.pos_x, self.pos_y, self.color) for _ in range(n)]
+		return streamers
 
 
 class Streamer(Particle):
-	def __init__(self, fw_pos_x, fw_pos_y):
+	
+	def __init__(self, pos_x, pos_y, color):
 		Particle.__init__(self)
-		self.random_streamer(fw_pos_x, fw_pos_y)
+		self.pos_x = pos_x
+		self.pos_y = pos_y
+		self.color = color
+
+		self.dist_fallen = 0
+
+		self.random_streamer()
 
 
+	def random_streamer(self):
+		self.len_x = random.randrange(2, 4)
+		self.len_y = self.len_x
+
+		self.vel_x = random.uniform(-8, 8)
+		self.vel_y = random.uniform(0, 8)
+
+		self.acc_y = GRAVITY + random.uniform(0, -0.1)
+
+		self.alpha_decay = -7
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	def update(self):
+		Particle.update(self)
+		self.dist_fallen += -1 * self.vel_y
