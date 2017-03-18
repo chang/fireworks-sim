@@ -1,4 +1,5 @@
 import pygame
+import random
 from firework import Firework
 
 
@@ -40,9 +41,9 @@ while running:
 		display.blit(firework_rendered, firework_pos)  # (0,0) are the top-left coordinates
 
 		# explode if at peak
-		if firework.vel_y < 0 and not firework.exploded:
+		if firework.vel_y < random.uniform(0, 2) and not firework.exploded:
 			firework.explode()
-			streamers.append(firework.make_streamers(10))
+			streamers.append(firework.make_streamers(50))
 			firework.exploded = True
 
 		# remove from array if off screen

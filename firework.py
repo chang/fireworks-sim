@@ -85,7 +85,7 @@ class Firework(Particle):
 
 		# velocity
 		self.vel_x = random.uniform(-.2, .2)
-		self.vel_y = random.uniform(10, 20)
+		self.vel_y = random.uniform(10, 16)
 
 		# acceleration
 		self.acc_y = GRAVITY
@@ -112,12 +112,13 @@ class Firework(Particle):
 
 
 class Streamer(Particle):
-	
+
 	def __init__(self, pos_x, pos_y, color):
 		Particle.__init__(self)
 		self.pos_x = pos_x
 		self.pos_y = pos_y
 		self.color = color
+		self.alpha = 300
 
 		self.dist_fallen = 0
 
@@ -128,7 +129,7 @@ class Streamer(Particle):
 		self.len_x = random.randrange(2, 4)
 		self.len_y = self.len_x
 
-		self.vel_x = random.uniform(-8, 8)
+		self.vel_x = random.uniform(-5, 5)
 		self.vel_y = random.uniform(0, 8)
 
 		self.acc_y = GRAVITY + random.uniform(0, -0.1)
