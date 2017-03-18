@@ -2,7 +2,6 @@ import pygame
 import random
 from firework import Firework, Trail
 
-
 WIN_WIDTH = 800
 WIN_HEIGHT = 600
 
@@ -16,10 +15,9 @@ clock = pygame.time.Clock()
 fireworks = []
 streamers = []
 trails = []
-for _ in range(10):
+for _ in range(2):
 	fw = Firework(WIN_WIDTH, WIN_HEIGHT)
 	fireworks.append(fw)
-
 
 ### RUN PYGAME
 running = True
@@ -32,9 +30,7 @@ while running:
 			running = False
 
 	display.fill((0, 0, 0))  # reset screen to black before it's drawn
-	
-
-	
+		
 	# render all fireworks
 	for i, firework in enumerate(fireworks):
 		firework.update()
@@ -44,8 +40,11 @@ while running:
 		# explode if at peak
 		if firework.vel_y < random.uniform(0, 2) and not firework.exploded:
 			firework.explode()
-			streamers.append(firework.make_streamers(50))
 			firework.exploded = True
+			streamers.append(firework.make_streamers(60))
+
+			# afterglow = firework.afterglow()
+			# display.blit(afterglow[0], afterglow[1])
 
 		# remove from array if off screen
 		if firework.vel_y < 0 and firework.pos_y > WIN_HEIGHT:
@@ -64,12 +63,14 @@ while running:
 		if trail.has_decayed():
 			trails.pop(i)
 
-
 	for i, streamer_group in enumerate(streamers):
 		for s in streamer_group:
 			s.update()
 			(s_rendered, s_pos) = s.draw()
 			display.blit(s_rendered, s_pos)
+
+			# need to optimize performance of streamer trails, too many
+			trails.append(Trail(s.pos_x, s.pos_y, s.size, s.color))
 
 		# remove streamer group if fallen far enough
 		if s.dist_fallen > 200:

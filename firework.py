@@ -3,7 +3,6 @@ import random
 
 GRAVITY = -0.3
 
-
 def get_random_color():
      """
      returns a random choice of color
@@ -40,7 +39,6 @@ class Particle:
 		self.alpha = 500
 		self.alpha_decay = 0
 		self.color = (255, 255, 255)
-
 		
 	def update(self):
 		self.pos_x += self.vel_x
@@ -51,10 +49,8 @@ class Particle:
 
 		self.alpha += self.alpha_decay
 
-
 	def is_off_screen(self):
 		return self.pos_y > win_height
-
 
 	def draw(self):
 		surf = pygame.Surface((self.size, self.size))
@@ -67,12 +63,13 @@ class Particle:
 
 
 class Firework(Particle):
-
+	"""
+	single firework shell
+	"""
 	def __init__(self, win_width, win_height):
 		Particle.__init__(self)
 		self.random_firework(win_width, win_height)
 		self.exploded = False
-
 
 	def random_firework(self, win_width, win_height):
 		# position
@@ -92,18 +89,29 @@ class Firework(Particle):
 		# color
 		self.color = get_random_color()
 
-
 	def update(self):
 		Particle.update(self)
-
-		# explode firework if peak is reached
-		if self.vel_y < 0:
+		if self.vel_y < 0:  # explode firework if peak is reached
 			self.explode()
-
 
 	def explode(self):
 		self.alpha = 0
 
+	def glow(self):
+		"""surrounds firework shell with glow"""
+		pass
+
+	def afterglow(self):
+		"""flash of light that appears immediately after explosion"""
+		afterglow_size_multiplier = 30
+
+		ag_size = afterglow_size_multiplier * self.size
+		surf = pygame.Surface((ag_size, ag_size))
+		surf.set_alpha(100)
+		surf.fill((255, 255, 255))
+		pos = (self.pos_x - 0.5 * ag_size, self.pos_y - 0.5 * ag_size)
+
+		return (surf, pos)
 
 	def make_streamers(self, n):
 		streamers = [Streamer(self.pos_x, self.pos_y, self.size, self.color) for _ in range(n)]
@@ -111,7 +119,9 @@ class Firework(Particle):
 
 
 class Streamer(Particle):
-
+	"""
+	particles that shoot out from shell once exploded
+	"""
 	def __init__(self, pos_x, pos_y, fw_size, color):
 		Particle.__init__(self)
 		self.pos_x = pos_x
@@ -124,7 +134,6 @@ class Streamer(Particle):
 
 		self.random_streamer()  # is this good practice?
 
-
 	def random_streamer(self):
 		self.size = random.uniform(0.2 * self.fw_size, 0.5 * self.fw_size)
 
@@ -133,8 +142,7 @@ class Streamer(Particle):
 
 		self.acc_y = GRAVITY + random.uniform(0, -0.1)
 
-		self.alpha_decay = -7
-
+		self.alpha_decay = random.uniform(-7, -5)
 
 	def update(self):
 		Particle.update(self)
@@ -142,7 +150,9 @@ class Streamer(Particle):
 
 
 class Trail(Particle):
-
+	"""
+	smoke trail for the fireworks and streamers
+	"""
 	def __init__(self, pos_x, pos_y, size, color):
 		Particle.__init__(self)
 		self.pos_x, self.pos_y = pos_x, pos_y
@@ -150,7 +160,7 @@ class Trail(Particle):
 		self.color = color
 
 		# trail specific vars
-		self.size_decay = 0.05 * self.size  # in pixels per frame
+		self.size_decay = 0.07 * self.size  # in pixels per frame
 		self.life = 0  # in frames
 		self.decay_time = .2  # in seconds
 
@@ -159,10 +169,8 @@ class Trail(Particle):
 
 		self.random_trail()
 
-
 	def random_trail(self):
-		self.pos_x += random.uniform(-0.5 * self.size, 0.5 * self.size)
-
+		self.pos_x += random.uniform(-0.3 * self.size, 0.3 * self.size)
 
 	def update(self):
 		Particle.update(self)
@@ -170,13 +178,5 @@ class Trail(Particle):
 		self.pos_x += 0.5 * self.size_decay
 		self.size -= self.size_decay
 
-
 	def has_decayed(self):
 		return self.life > self.decay_time * 60
-
-
-
-
-
-
-
