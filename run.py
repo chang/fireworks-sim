@@ -1,11 +1,10 @@
 import pygame
 import random
-from firework import Firework
+from firework import Firework, Trail
 
 
 WIN_WIDTH = 800
 WIN_HEIGHT = 600
-FPS = 60
 
 # init all pygame vars
 pygame.init()
@@ -16,7 +15,8 @@ clock = pygame.time.Clock()
 # create fireworks
 fireworks = []
 streamers = []
-for _ in range(7):
+trails = []
+for _ in range(10):
 	fw = Firework(WIN_WIDTH, WIN_HEIGHT)
 	fireworks.append(fw)
 
@@ -33,9 +33,10 @@ while running:
 
 	display.fill((0, 0, 0))  # reset screen to black before it's drawn
 	
+
 	
 	# render all fireworks
-	for i,firework in enumerate(fireworks):
+	for i, firework in enumerate(fireworks):
 		firework.update()
 		(firework_rendered, firework_pos) = firework.draw()
 		display.blit(firework_rendered, firework_pos)  # (0,0) are the top-left coordinates
@@ -51,8 +52,20 @@ while running:
 			fireworks.pop(i)
 			fireworks.append(Firework(WIN_WIDTH, WIN_HEIGHT))
 
+		# create a trail if on the way up
+		if firework.vel_y > 0:
+			trails.append(Trail(firework.pos_x, firework.pos_y, firework.size, firework.color))
 
-	for i,streamer_group in enumerate(streamers):
+	for i, trail in enumerate(trails):
+		trail.update()
+		(trail_rend, trail_pos)  = trail.draw()
+		display.blit(trail_rend, trail_pos)
+
+		if trail.has_decayed():
+			trails.pop(i)
+
+
+	for i, streamer_group in enumerate(streamers):
 		for s in streamer_group:
 			s.update()
 			(s_rendered, s_pos) = s.draw()
@@ -65,4 +78,4 @@ while running:
 
 	# reset screen and set frame rate
 	pygame.display.flip()
-	clock.tick(FPS)
+	clock.tick(60)

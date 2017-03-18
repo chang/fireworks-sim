@@ -30,8 +30,7 @@ class Particle:
 	def __init__(self):
 		self.pos_x = 0
 		self.pos_y = 0
-		self.len_x = 0
-		self.len_y = 0
+		self.size = 0
 		
 		self.vel_x = 0
 		self.vel_y = 0
@@ -53,11 +52,12 @@ class Particle:
 		self.alpha += self.alpha_decay
 
 
+	def is_off_screen(self):
+		return self.pos_y > win_height
+
+
 	def draw(self):
-		"""
-		returns dict of 'color' in a tuple of RGB vals and a pygame.Rect object
-		"""
-		surf = pygame.Surface((self.len_x, self.len_y))
+		surf = pygame.Surface((self.size, self.size))
 		surf.set_alpha(self.alpha)
 		surf.fill(self.color)
 
@@ -80,8 +80,7 @@ class Firework(Particle):
 		self.pos_y = random.uniform(win_height, win_height + 20)  # no actual need to adjust
 		
 		# size
-		self.len_x = random.randrange(5, 10)
-		self.len_y = self.len_x
+		self.size = random.randrange(5, 10)
 
 		# velocity
 		self.vel_x = random.uniform(-.2, .2)
@@ -107,13 +106,13 @@ class Firework(Particle):
 
 
 	def make_streamers(self, n):
-		streamers = [Streamer(self.pos_x, self.pos_y, self.color) for _ in range(n)]
+		streamers = [Streamer(self.pos_x, self.pos_y, self.size, self.color) for _ in range(n)]
 		return streamers
 
 
 class Streamer(Particle):
 
-	def __init__(self, pos_x, pos_y, color):
+	def __init__(self, pos_x, pos_y, fw_size, color):
 		Particle.__init__(self)
 		self.pos_x = pos_x
 		self.pos_y = pos_y
@@ -121,16 +120,16 @@ class Streamer(Particle):
 		self.alpha = 300
 
 		self.dist_fallen = 0
+		self.fw_size = fw_size
 
-		self.random_streamer()
+		self.random_streamer()  # is this good practice?
 
 
 	def random_streamer(self):
-		self.len_x = random.randrange(2, 4)
-		self.len_y = self.len_x
+		self.size = random.uniform(0.2 * self.fw_size, 0.5 * self.fw_size)
 
 		self.vel_x = random.uniform(-5, 5)
-		self.vel_y = random.uniform(0, 8)
+		self.vel_y = random.uniform(0, 10)
 
 		self.acc_y = GRAVITY + random.uniform(0, -0.1)
 
@@ -140,3 +139,44 @@ class Streamer(Particle):
 	def update(self):
 		Particle.update(self)
 		self.dist_fallen += -1 * self.vel_y
+
+
+class Trail(Particle):
+
+	def __init__(self, pos_x, pos_y, size, color):
+		Particle.__init__(self)
+		self.pos_x, self.pos_y = pos_x, pos_y
+		self.size = size
+		self.color = color
+
+		# trail specific vars
+		self.size_decay = 0.05 * self.size  # in pixels per frame
+		self.life = 0  # in frames
+		self.decay_time = .2  # in seconds
+
+		self.alpha = self.alpha * 0.2
+		self.alpha_decay = self.alpha / 60 * self.decay_time
+
+		self.random_trail()
+
+
+	def random_trail(self):
+		self.pos_x += random.uniform(-0.5 * self.size, 0.5 * self.size)
+
+
+	def update(self):
+		Particle.update(self)
+		self.life += 1
+		self.pos_x += 0.5 * self.size_decay
+		self.size -= self.size_decay
+
+
+	def has_decayed(self):
+		return self.life > self.decay_time * 60
+
+
+
+
+
+
+
