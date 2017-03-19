@@ -1,7 +1,7 @@
 import pygame
 import random
 
-GRAVITY = -0.3
+GRAVITY = -.3
 
 def get_random_color():
      """
@@ -19,6 +19,16 @@ def get_random_color():
                [0,48,255],    #Bright blue
                [128,0,255],   #Indigo
                [255,0,255]]   #Magenta
+     return random.choice(colors)
+
+
+def get_random_patriotic_color():
+     """
+     returns a random choice of color
+     """
+     colors = [[255,255,255], #White
+               [224,22,43],    #Red
+               [100,150,255]]    #Bright blue
      return random.choice(colors)
 
 
@@ -61,19 +71,23 @@ class Particle:
 
 		return (surf, pos)
 
+	def draw_rect(self):
+		return pygame.Rect(self.pos_y, self.pos_x, self.size, self.size)
+
 
 class Firework(Particle):
 	"""
 	single firework shell
 	"""
-	def __init__(self, win_width, win_height):
+	def __init__(self, win_width, win_height, patriotic_mode):
 		Particle.__init__(self)
+		self.patriotic_mode = patriotic_mode
 		self.random_firework(win_width, win_height)
 		self.exploded = False
 
 	def random_firework(self, win_width, win_height):
 		# position
-		self.pos_x = random.uniform(0, win_width)
+		self.pos_x = random.normalvariate(win_width / 2, win_width / 3)
 		self.pos_y = random.uniform(win_height, win_height + 20)  # no actual need to adjust
 		
 		# size
@@ -87,7 +101,10 @@ class Firework(Particle):
 		self.acc_y = GRAVITY
 
 		# color
-		self.color = get_random_color()
+		if self.patriotic_mode:
+			self.color = get_random_patriotic_color()
+		else:
+			self.color = get_random_color()
 
 	def update(self):
 		Particle.update(self)
@@ -96,6 +113,7 @@ class Firework(Particle):
 
 	def explode(self):
 		self.alpha = 0
+		self.exploded = True
 
 	def glow(self):
 		"""surrounds firework shell with glow"""
@@ -113,9 +131,24 @@ class Firework(Particle):
 
 		return (surf, pos)
 
+	def afterglow_fullscreen(self, win_width, win_height):
+		"""flash of light that appears immediately after explosion"""
+		surf = pygame.Surface((win_width, win_height))
+		surf.set_alpha(100)
+		surf.fill(self.color)
+		pos = (0, 0)
+
+		return (surf, pos)
+
 	def make_streamers(self, n):
 		streamers = [Streamer(self.pos_x, self.pos_y, self.size, self.color) for _ in range(n)]
 		return streamers
+
+	def at_peak(self):
+		return self.vel_y < random.uniform(0, 2) and not self.exploded
+
+	def on_upwards_path(self):
+		return self.vel_y > 0
 
 
 class Streamer(Particle):
@@ -126,21 +159,24 @@ class Streamer(Particle):
 		Particle.__init__(self)
 		self.pos_x = pos_x
 		self.pos_y = pos_y
+		# self.acc_x = -.2
+
 		self.color = color
 		self.alpha = 300
 
 		self.dist_fallen = 0
 		self.fw_size = fw_size
+		self.exploded = False
 
 		self.random_streamer()  # is this good practice?
 
 	def random_streamer(self):
-		self.size = random.uniform(0.2 * self.fw_size, 0.5 * self.fw_size)
+		self.size = random.uniform(0.3 * self.fw_size, 0.6 * self.fw_size)
 
 		self.vel_x = random.uniform(-5, 5)
-		self.vel_y = random.uniform(0, 10)
+		self.vel_y = random.uniform(0, 12)
 
-		self.acc_y = GRAVITY + random.uniform(0, -0.1)
+		self.acc_y = GRAVITY + random.uniform(-0.1, 0)
 
 		self.alpha_decay = random.uniform(-7, -5)
 
@@ -153,7 +189,7 @@ class Trail(Particle):
 	"""
 	smoke trail for the fireworks and streamers
 	"""
-	def __init__(self, pos_x, pos_y, size, color):
+	def __init__(self, pos_x, pos_y, size, color, is_streamer = False):
 		Particle.__init__(self)
 		self.pos_x, self.pos_y = pos_x, pos_y
 		self.size = size
@@ -166,6 +202,7 @@ class Trail(Particle):
 
 		self.alpha = self.alpha * 0.2
 		self.alpha_decay = self.alpha / 60 * self.decay_time
+		self.is_streamer = is_streamer
 
 		self.random_trail()
 
@@ -179,4 +216,21 @@ class Trail(Particle):
 		self.size -= self.size_decay
 
 	def has_decayed(self):
-		return self.life > self.decay_time * 60
+		if self.is_streamer:
+			return self.life > self.decay_time * 60 * 0.3
+		else:
+			return self.life > self.decay_time * 60
+
+def random_sound():
+	"""
+	returns random BOOM sound
+	"""
+	sounds = ['BAWM.wav', 'BABABAWM.wav', 'OOGABOOGA.wav']
+	return random.choice(sounds)
+
+def random_patriotic_sound():
+	"""
+	returns random all-american sound
+	"""
+	sounds = ['MURICA.wav', 'CAW.wav', 'CAWCAW.wav']
+	return random.choice(sounds)
